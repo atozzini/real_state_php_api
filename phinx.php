@@ -11,7 +11,7 @@ return [
 
         'development' => [
             'adapter' => 'pgsql',
-            'host' => '127.0.0.1',  // Alterado para 127.0.0.1
+            'host' => '127.0.0.1',
             'name' => 'real_state_php_api',
             'user' => 'postgres',
             'pass' => 'qwerty',
