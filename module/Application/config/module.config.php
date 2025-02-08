@@ -29,9 +29,9 @@ return [
     ],
     'view_manager' => [
         'strategies' => ['ViewJsonStrategy'],
-        'display_exceptions' => true, // Mostra erros detalhados
-        'not_found_template' => 'error/json', // Garante que erros 404 retornem JSON
-        'exception_template' => 'error/json', // Garante que exceções retornem JSON
+        'display_exceptions' => true,
+        'not_found_template' => 'error/json',
+        'exception_template' => 'error/json',
     ],
     'controllers' => [
         'factories' => [
