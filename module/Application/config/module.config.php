@@ -2,56 +2,59 @@
 
 declare(strict_types=1);
 
-namespace Application;
-
-use Laminas\Router\Http\Literal;
-use Laminas\Router\Http\Segment;
-use Laminas\ServiceManager\Factory\InvokableFactory;
-
 return [
     'router' => [
         'routes' => [
-            'home' => [
-                'type'    => Literal::class,
+            'create-user' => [
+                'type' => \Laminas\Router\Http\Literal::class,
                 'options' => [
-                    'route'    => '/',
+                    'route'    => '/api/create-user',
                     'defaults' => [
-                        'controller' => Controller\IndexController::class,
-                        'action'     => 'index',
+                        'controller' => Application\Controller\UserController::class,
+                        'action'     => 'create',
                     ],
                 ],
             ],
-            'application' => [
-                'type'    => Segment::class,
+            'users' => [
+                'type' => \Laminas\Router\Http\Segment::class,
                 'options' => [
-                    'route'    => '/application[/:action]',
+                    'route' => '/api/users',
                     'defaults' => [
-                        'controller' => Controller\IndexController::class,
-                        'action'     => 'index',
+                        'controller' => Application\Controller\UserController::class,
+                        'action'     => 'getList',
                     ],
                 ],
             ],
-        ],
-    ],
-    'controllers' => [
-        'factories' => [
-            Controller\IndexController::class => InvokableFactory::class,
         ],
     ],
     'view_manager' => [
-        'display_not_found_reason' => true,
-        'display_exceptions'       => true,
-        'doctype'                  => 'HTML5',
-        'not_found_template'       => 'error/404',
-        'exception_template'       => 'error/index',
-        'template_map' => [
-            'layout/layout'           => __DIR__ . '/../view/layout/layout.phtml',
-            'application/index/index' => __DIR__ . '/../view/application/index/index.phtml',
-            'error/404'               => __DIR__ . '/../view/error/404.phtml',
-            'error/index'             => __DIR__ . '/../view/error/index.phtml',
+        'strategies' => ['ViewJsonStrategy'],
+        'display_exceptions' => true, // Mostra erros detalhados
+        'not_found_template' => 'error/json', // Garante que erros 404 retornem JSON
+        'exception_template' => 'error/json', // Garante que exceções retornem JSON
+    ],
+    'controllers' => [
+        'factories' => [
+            Application\Controller\IndexController::class => \Laminas\ServiceManager\Factory\InvokableFactory::class,
+            Application\Controller\UserController::class => function ($container) {
+                return new Application\Controller\UserController(
+                    $container->get(Application\Model\UserTable::class)
+                );
+            },
         ],
-        'template_path_stack' => [
-            __DIR__ . '/../view',
+    ],
+    'service_manager' => [
+        'factories' => [
+            'Laminas\Db\Adapter\Adapter' => Laminas\Db\Adapter\AdapterServiceFactory::class,
+            Application\Model\UserTable::class => function ($container) {
+                $dbAdapter = $container->get('Laminas\Db\Adapter\Adapter');
+                return new Application\Model\UserTable(new Laminas\Db\TableGateway\TableGateway('users', $dbAdapter));
+            },
+        ],
+        'controller_plugins' => [
+            'factories' => [
+                Application\Controller\Plugin\JsonErrorHandler::class => InvokableFactory::class,
+            ],
         ],
     ],
 ];

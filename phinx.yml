@@ -1,0 +1,16 @@
+paths:
+    migrations: db/migrations
+    seeds: db/seeds
+
+environments:
+    default_migration_table: phinxlog
+    default_database: development
+
+    development:
+        adapter: pgsql
+        host: localhost
+        port: 5433
+        name: real_state_php_api
+        user: postgres
+        pass: qwerty
+        charset: utf8
