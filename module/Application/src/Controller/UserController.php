@@ -33,6 +33,37 @@ class UserController extends AbstractRestfulController
         }
     }
 
+    public function createAction()
+    {
+        try {
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            if (!isset($data['name'], $data['email'], $data['password'])) {
+                $this->getResponse()->setStatusCode(Response::STATUS_CODE_400);
+                return new JsonModel([
+                    'error' => 'Parâmetros inválidos! Certifique-se de enviar name, email e password.'
+                ]);
+            }
+
+            $existingUser = $this->userTable->findUserByEmail($data['email']);
+            if ($existingUser) {
+                $this->getResponse()->setStatusCode(Response::STATUS_CODE_409);
+                return new JsonModel([
+                    'error' => 'Este e-mail já está cadastrado.'
+                ]);
+            }
+
+            $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+            $this->userTable->createUser($data);
+
+            $this->getResponse()->setStatusCode(Response::STATUS_CODE_201);
+            return new JsonModel(['message' => 'Usuário criado com sucesso!']);
+        } catch (Throwable $e) {
+            $this->getResponse()->setStatusCode(Response::STATUS_CODE_500);
+            return new JsonModel(['error' => $e->getMessage()]);
+        }
+    }
+
     public function editAction($id)
     {
         try {
@@ -43,27 +74,6 @@ class UserController extends AbstractRestfulController
             }
 
             return new JsonModel($user);
-        } catch (Throwable $e) {
-            $this->getResponse()->setStatusCode(Response::STATUS_CODE_500);
-            return new JsonModel(['error' => $e->getMessage()]);
-        }
-    }
-
-    public function createAction()
-    {
-        try {
-            if (!isset($data['name'], $data['email'], $data['password'])) {
-                $this->getResponse()->setStatusCode(Response::STATUS_CODE_400);
-                return new JsonModel([
-                    'error' => 'Parâmetros inválidos! Certifique-se de enviar name, email e password.'
-                ]);
-            }
-
-            $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
-            $this->userTable->createUser($data);
-
-            $this->getResponse()->setStatusCode(Response::STATUS_CODE_201);
-            return new JsonModel(['message' => 'Usuário criado com sucesso!']);
         } catch (Throwable $e) {
             $this->getResponse()->setStatusCode(Response::STATUS_CODE_500);
             return new JsonModel(['error' => $e->getMessage()]);

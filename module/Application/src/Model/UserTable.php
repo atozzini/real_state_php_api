@@ -6,8 +6,7 @@ namespace Application\Model;
 
 use Laminas\Db\TableGateway\TableGatewayInterface;
 
-class UserTable
-{
+class UserTable {
     private TableGatewayInterface $tableGateway;
 
     public function __construct(TableGatewayInterface $tableGateway)
@@ -15,8 +14,7 @@ class UserTable
         $this->tableGateway = $tableGateway;
     }
 
-    public function createUser(array $data): void
-    {
+    public function createUser(array $data): void {
         $this->tableGateway->insert([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -26,8 +24,12 @@ class UserTable
         ]);
     }
 
-    public function fetchAll(): array
-    {
+    public function fetchAll(): array {
         return $this->tableGateway->select()->toArray();
+    }
+
+    public function findUserByEmail(string $email) {
+        $rowset = $this->tableGateway->select(['email' => $email]);
+        return $rowset->current();
     }
 }

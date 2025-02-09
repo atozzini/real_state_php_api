@@ -18,7 +18,7 @@ return [
         ],
     ],
     'users' => [
-        'type' => Segment::class,
+        'type' => Literal::class,
         'options' => [
             'route' => '/api/users',
             'defaults' => [
