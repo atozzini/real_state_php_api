@@ -2,30 +2,17 @@
 
 declare(strict_types=1);
 
+use Application\Controller\UserController;
+use Application\Controller\IndexController;
+use Application\Controller\Plugin\JsonErrorHandler;
+use Application\Model\UserTable;
+use Laminas\Db\TableGateway\TableGateway;
+use Laminas\Db\Adapter\AdapterServiceFactory;
+use Laminas\ServiceManager\Factory\InvokableFactory;
+
 return [
     'router' => [
-        'routes' => [
-            'create-user' => [
-                'type' => \Laminas\Router\Http\Literal::class,
-                'options' => [
-                    'route'    => '/api/create-user',
-                    'defaults' => [
-                        'controller' => Application\Controller\UserController::class,
-                        'action'     => 'create',
-                    ],
-                ],
-            ],
-            'users' => [
-                'type' => \Laminas\Router\Http\Segment::class,
-                'options' => [
-                    'route' => '/api/users',
-                    'defaults' => [
-                        'controller' => Application\Controller\UserController::class,
-                        'action'     => 'getList',
-                    ],
-                ],
-            ],
-        ],
+        'routes' => include __DIR__ . '/routes.config.php',
     ],
     'view_manager' => [
         'strategies' => ['ViewJsonStrategy'],
@@ -35,25 +22,25 @@ return [
     ],
     'controllers' => [
         'factories' => [
-            Application\Controller\IndexController::class => \Laminas\ServiceManager\Factory\InvokableFactory::class,
-            Application\Controller\UserController::class => function ($container) {
-                return new Application\Controller\UserController(
-                    $container->get(Application\Model\UserTable::class)
+            IndexController::class => InvokableFactory::class,
+            UserController::class => function ($container) {
+                return new UserController(
+                    $container->get(UserTable::class)
                 );
             },
         ],
     ],
     'service_manager' => [
         'factories' => [
-            'Laminas\Db\Adapter\Adapter' => Laminas\Db\Adapter\AdapterServiceFactory::class,
-            Application\Model\UserTable::class => function ($container) {
+            'Laminas\Db\Adapter\Adapter' => AdapterServiceFactory::class,
+            UserTable::class => function ($container) {
                 $dbAdapter = $container->get('Laminas\Db\Adapter\Adapter');
-                return new Application\Model\UserTable(new Laminas\Db\TableGateway\TableGateway('users', $dbAdapter));
+                return new UserTable(new TableGateway('users', $dbAdapter));
             },
         ],
         'controller_plugins' => [
             'factories' => [
-                Application\Controller\Plugin\JsonErrorHandler::class => InvokableFactory::class,
+                JsonErrorHandler::class => InvokableFactory::class,
             ],
         ],
     ],

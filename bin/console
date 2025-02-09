@@ -1,0 +1,11 @@
+#!/usr/bin/env php
+<?php
+
+require 'vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Application\Command\ListRoutesCommand;
+
+$app = new Application('Laminas Console', '1.0.0');
+$app->add(new ListRoutesCommand());
+$app->run();
