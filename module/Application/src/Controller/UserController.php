@@ -14,13 +14,11 @@ class UserController extends AbstractRestfulController
 {
     private UserTable $userTable;
 
-    public function __construct(UserTable $userTable)
-    {
+    public function __construct(UserTable $userTable) {
         $this->userTable = $userTable;
     }
 
-    public function indexAction()
-    {
+    public function indexAction() {
         try {
             $users = $this->userTable->fetchAll();
             return new JsonModel(['users' => $users]);
@@ -33,8 +31,25 @@ class UserController extends AbstractRestfulController
         }
     }
 
-    public function createAction()
-    {
+    public function getAction() {
+        try {
+            $id = (int) $this->params()->fromRoute('id', 0);
+            if (!$id) {
+                return new JsonModel(['error' => 'ID do usuário não informado.'], Response::STATUS_CODE_400);
+            }
+
+            $user = $this->userTable->findUserById($id);
+            if (!$user) {
+                return new JsonModel(['error' => 'Usuário não encontrado.'], Response::STATUS_CODE_404);
+            }
+
+            return new JsonModel($user);
+        } catch (Throwable $e) {
+            return new JsonModel(['error' => 'Erro interno no servidor', 'message' => $e->getMessage()], Response::STATUS_CODE_500);
+        }
+    }
+
+    public function createAction() {
         try {
             $data = json_decode(file_get_contents('php://input'), true);
 
@@ -64,55 +79,46 @@ class UserController extends AbstractRestfulController
         }
     }
 
-    public function editAction($id)
-    {
+    public function updateAction() {
         try {
-            $user = $this->userTable->findUserById((int) $id);
-            if (!$user) {
-                $this->getResponse()->setStatusCode(Response::STATUS_CODE_404);
-                return new JsonModel(['error' => 'Usuário não encontrado']);
+            $id = (int) $this->params()->fromRoute('id', 0);
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            if (!$id) {
+                return new JsonModel(['error' => 'ID do usuário não informado.'], Response::STATUS_CODE_400);
             }
 
-            return new JsonModel($user);
-        } catch (Throwable $e) {
-            $this->getResponse()->setStatusCode(Response::STATUS_CODE_500);
-            return new JsonModel(['error' => $e->getMessage()]);
-        }
-    }
-
-    public function updateAction($id, $data)
-    {
-        try {
-            if (!$this->userTable->findUserById((int) $id)) {
-                $this->getResponse()->setStatusCode(Response::STATUS_CODE_404);
-                return new JsonModel(['error' => 'Usuário não encontrado']);
+            if (!$this->userTable->findUserById($id)) {
+                return new JsonModel(['error' => 'Usuário não encontrado.'], Response::STATUS_CODE_404);
             }
 
             if (isset($data['password'])) {
                 $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
             }
 
-            $this->userTable->updateUser((int) $id, $data);
+            $this->userTable->updateUser($id, $data);
             return new JsonModel(['message' => 'Usuário atualizado com sucesso!']);
         } catch (Throwable $e) {
-            $this->getResponse()->setStatusCode(Response::STATUS_CODE_500);
-            return new JsonModel(['error' => $e->getMessage()]);
+            return new JsonModel(['error' => $e->getMessage()], Response::STATUS_CODE_500);
         }
     }
 
-    public function destroyAction($id)
-    {
+    public function deleteAction() {
         try {
-            if (!$this->userTable->findUserById((int) $id)) {
-                $this->getResponse()->setStatusCode(Response::STATUS_CODE_404);
-                return new JsonModel(['error' => 'Usuário não encontrado']);
+            $id = (int) $this->params()->fromRoute('id', 0);
+
+            if (!$id) {
+                return new JsonModel(['error' => 'ID do usuário não informado.'], Response::STATUS_CODE_400);
             }
 
-            $this->userTable->deleteUser((int) $id);
+            if (!$this->userTable->findUserById($id)) {
+                return new JsonModel(['error' => 'Usuário não encontrado.'], Response::STATUS_CODE_404);
+            }
+
+            $this->userTable->deleteUser($id);
             return new JsonModel(['message' => 'Usuário deletado com sucesso!']);
         } catch (Throwable $e) {
-            $this->getResponse()->setStatusCode(Response::STATUS_CODE_500);
-            return new JsonModel(['error' => $e->getMessage()]);
+            return new JsonModel(['error' => $e->getMessage()], Response::STATUS_CODE_500);
         }
     }
 }

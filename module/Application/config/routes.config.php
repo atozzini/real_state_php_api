@@ -7,6 +7,16 @@ use Laminas\Router\Http\Literal;
 use Application\Controller\UserController;
 
 return [
+    'users' => [
+        'type' => Literal::class,
+        'options' => [
+            'route' => '/api/list-users',
+            'defaults' => [
+                'controller' => UserController::class,
+                'action'     => 'index',
+            ],
+        ],
+    ],
     'create-user' => [
         'type' => Literal::class,
         'options' => [
@@ -17,13 +27,33 @@ return [
             ],
         ],
     ],
-    'users' => [
-        'type' => Literal::class,
+    'get-user' => [
+        'type' => Segment::class,
         'options' => [
-            'route' => '/api/users',
+            'route'    => '/api/get-user[/:id]',
             'defaults' => [
                 'controller' => UserController::class,
-                'action'     => 'index',
+                'action'     => 'get',
+            ],
+        ],
+    ],
+    'update-user' => [
+        'type' => Segment::class,
+        'options' => [
+            'route'    => '/api/update-user[/:id]',
+            'defaults' => [
+                'controller' => UserController::class,
+                'action'     => 'update',
+            ],
+        ],
+    ],
+    'delete-user' => [
+        'type' => Segment::class,
+        'options' => [
+            'route'    => '/api/delete-user[/:id]',
+            'defaults' => [
+                'controller' => UserController::class,
+                'action'     => 'delete',
             ],
         ],
     ],
